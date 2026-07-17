@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { TrendingUp, Package, AlertCircle, Users, Zap } from 'lucide-react';
+import { BarChart3, Users, ShoppingCart, TrendingUp } from 'lucide-react';
 
-export default function VendorDashboard() {
+export default function AdminDashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <motion.div
@@ -11,8 +11,8 @@ export default function VendorDashboard() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-12"
       >
-        <h1 className="text-display-lg font-display font-bold mb-2">Vendor Dashboard</h1>
-        <p className="text-foreground-muted">Manage your shop, inventory, and collaborate with other vendors</p>
+        <h1 className="text-display-lg font-display font-bold mb-2">Admin Dashboard</h1>
+        <p className="text-foreground-muted">Platform analytics and management</p>
       </motion.div>
 
       {/* Key Metrics */}
@@ -23,10 +23,10 @@ export default function VendorDashboard() {
         className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
       >
         {[
-          { icon: TrendingUp, label: 'Total Revenue', value: '₹45,230', color: 'bg-accent-gold/10' },
-          { icon: Package, label: 'Active Products', value: '127', color: 'bg-primary-50' },
-          { icon: AlertCircle, label: 'Low Stock', value: '8', color: 'bg-accent-coral/10' },
-          { icon: Users, label: 'Collaborations', value: '5', color: 'bg-accent-amber/10' },
+          { icon: TrendingUp, label: 'Total Revenue', value: '₹2,45,600', color: 'bg-accent-gold/10' },
+          { icon: Users, label: 'Active Vendors', value: '42', color: 'bg-primary-50' },
+          { icon: ShoppingCart, label: 'Total Orders', value: '1,284', color: 'bg-accent-coral/10' },
+          { icon: BarChart3, label: 'Avg Order Value', value: '₹591', color: 'bg-accent-amber/10' },
         ].map((metric, i) => (
           <motion.div
             key={i}
@@ -42,7 +42,7 @@ export default function VendorDashboard() {
         ))}
       </motion.div>
 
-      {/* Quick Actions */}
+      {/* Management Sections */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -50,9 +50,9 @@ export default function VendorDashboard() {
         className="grid md:grid-cols-3 gap-6"
       >
         {[
-          { label: 'Add Product', href: '/vendor/products/new', color: 'bg-primary-50' },
-          { label: 'Stock Swap Requests', href: '/vendor/stock-swap', color: 'bg-accent-gold/10' },
-          { label: 'Merchant Intelligence', href: '/vendor/intelligence', color: 'bg-accent-amber/10' },
+          { label: 'Manage Vendors', href: '/admin/vendors', color: 'bg-primary-50' },
+          { label: 'View Analytics', href: '/admin/analytics', color: 'bg-accent-gold/10' },
+          { label: 'Platform Health', href: '/admin/health', color: 'bg-accent-amber/10' },
         ].map((action, i) => (
           <motion.a
             key={i}
