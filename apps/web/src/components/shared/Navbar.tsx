@@ -1,219 +1,132 @@
 'use client';
-import { useState, useEffect } from 'react';
+
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Bell, Menu, X, ShoppingCart, User, Search, Moon, Sun } from 'lucide-react';
-import { useUIStore } from '@/stores/uiStore';
-import { useCartStore } from '@/stores/cartStore';
-import { cn } from '@/lib/utils';
+import { useRouter, usePathname } from 'next/navigation';
+import { Menu, X, ShoppingBag, User, LogOut, Moon, Sun } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import { useAuthStore } from '@/stores/auth';
 
-interface NavbarProps {
-  transparent?: boolean;
-}
-
-const customerNav = [
-  { label: 'Shops', href: '/shops' },
-  { label: 'Deals Radar', href: '/deals-radar' },
-  { label: 'Zero Waste', href: '/zero-waste' },
-  { label: 'Group Buys', href: '/group-buys' },
-  { label: '🍳 Recipe to Cart', href: '/recipe-to-cart' },
-  { label: '🏆 Demo Panel', href: '/demo' },
-];
-
-const vendorNav = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Products', href: '/products' },
-  { label: 'Orders', href: '/vendor/orders' },
-  { label: 'Stock Swap', href: '/stock-swap' },
-];
-
-export function Navbar({ transparent = false }: NavbarProps) {
-  const { user, isDark, toggleDark, logout, unreadCount } = useUIStore();
-  const { getItemCount, setCartOpen } = useCartStore();
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+export function Navbar() {
+  const router = useRouter();
   const pathname = usePathname();
-  const itemCount = getItemCount();
+  const [isOpen, setIsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { user, logout, isLoggedIn } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
+    setMounted(true);
   }, []);
 
-  const navLinks = user?.role === 'vendor' ? vendorNav : customerNav;
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem('accessToken');
+    router.push('/login');
+  };
 
-  const navClasses = cn(
-    'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-    scrolled || !transparent
-      ? 'glass border-b border-white/20 shadow-glass py-3'
-      : 'bg-transparent py-5'
-  );
+  // Hide navbar on auth pages
+  if (pathname?.includes('/login') || pathname?.includes('/register')) {
+    return null;
+  }
 
   return (
-    <nav className={navClasses} aria-label="Main navigation">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-card-dark/70 border-b border-primary-100 dark:border-primary-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link
-            href={user?.role === 'vendor' ? '/dashboard' : user?.role === 'admin' ? '/admin/dashboard' : '/'}
-            className="flex items-center gap-2.5 font-display text-lg font-bold text-primary-600"
-            aria-label="Yaharika Mart home"
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
-              <ShoppingBag size={16} className="text-white" />
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center text-white font-bold">
+              ᴋ
             </div>
-            <span className="hidden sm:block">Yaharika Mart</span>
+            <span className="font-display text-xl font-bold text-gradient-primary hidden sm:inline">Yaharika</span>
           </Link>
 
-          {/* Desktop nav links */}
-          {user && (
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    'px-4 py-2 rounded-xl text-sm font-medium transition-colors',
-                    pathname === link.href
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-foreground/70 hover:text-foreground hover:bg-foreground/5'
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
-            {/* Dark mode toggle */}
-            <button
-              onClick={toggleDark}
-              className="w-9 h-9 rounded-xl border border-primary-100 flex items-center justify-center hover:bg-primary-50 transition-colors tap-target"
-              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDark ? <Sun size={16} className="text-primary-600" /> : <Moon size={16} className="text-primary-600" />}
-            </button>
-
-            {user ? (
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-6">
+            {isLoggedIn && user && (
               <>
-                {/* Notifications */}
+                <span className="text-sm text-foreground-muted">{user.name}</span>
                 <Link
-                  href="/account"
-                  className="relative w-9 h-9 rounded-xl border border-primary-100 flex items-center justify-center hover:bg-primary-50 transition-colors tap-target"
-                  aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                  href={user.role === 'vendor' ? '/vendor/dashboard' : user.role === 'admin' ? '/admin/dashboard' : '/dashboard'}
+                  className="text-foreground-muted hover:text-foreground transition-colors"
                 >
-                  <Bell size={16} className="text-primary-600" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-danger text-white text-xs rounded-full flex items-center justify-center font-bold">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
+                  Dashboard
                 </Link>
-
-                {/* Cart (customer only) */}
-                {user.role === 'customer' && (
-                  <button
-                    onClick={() => setCartOpen(true)}
-                    className="relative w-9 h-9 rounded-xl border border-primary-100 flex items-center justify-center hover:bg-primary-50 transition-colors tap-target"
-                    aria-label={`Shopping cart${itemCount > 0 ? ` (${itemCount} items)` : ''}`}
-                  >
-                    <ShoppingCart size={16} className="text-primary-600" />
-                    {itemCount > 0 && (
-                      <motion.span
-                        key={itemCount}
-                        initial={{ scale: 1.5 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center font-bold"
-                        aria-live="polite"
-                      >
-                        {itemCount}
-                      </motion.span>
-                    )}
-                  </button>
-                )}
-
-                {/* User avatar */}
-                <Link
-                  href="/account"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-primary-50 transition-colors"
-                  aria-label="Account settings"
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="p-2 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-colors"
                 >
-                  <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold">
-                    {user.name[0]?.toUpperCase()}
-                  </div>
-                  <span className="hidden sm:block text-sm font-medium text-foreground/80">{user.name.split(' ')[0]}</span>
+                  {mounted && theme === 'dark' ? (
+                    <Sun className="w-5 h-5" />
+                  ) : (
+                    <Moon className="w-5 h-5" />
+                  )}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-foreground-muted hover:text-foreground transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </>
+            )}
+            {!isLoggedIn && (
+              <>
+                <Link href="/login" className="text-foreground-muted hover:text-foreground">
+                  Login
+                </Link>
+                <Link href="/register" className="btn-primary">
+                  Sign Up
                 </Link>
               </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-primary-600 hover:bg-primary-50 transition-colors"
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary-500 text-white hover:bg-primary-700 transition-colors"
-                >
-                  Sign up
-                </Link>
-              </div>
             )}
-
-            {/* Mobile menu toggle */}
-            <button
-              onClick={() => setMenuOpen((o) => !o)}
-              className="md:hidden w-9 h-9 rounded-xl border border-primary-100 flex items-center justify-center tap-target"
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={menuOpen}
-            >
-              {menuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
           </div>
-        </div>
-      </div>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-t border-white/10"
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg"
           >
-            <div className="container mx-auto px-4 py-4 space-y-1">
-              {user ? (
-                navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className={cn(
-                      'block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                      pathname === link.href
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-foreground/70 hover:bg-foreground/5'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                ))
-              ) : (
-                <>
-                  <Link href="/login" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 rounded-xl text-sm text-foreground/70">Log in</Link>
-                  <Link href="/register" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 rounded-xl text-sm bg-primary-500 text-white text-center">Sign up free</Link>
-                </>
-              )}
-            </div>
-          </motion.div>
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden py-4 border-t border-primary-100 dark:border-primary-900">
+            {isLoggedIn && user && (
+              <>
+                <p className="px-4 py-2 text-sm font-medium">{user.name}</p>
+                <Link
+                  href={user.role === 'vendor' ? '/vendor/dashboard' : user.role === 'admin' ? '/admin/dashboard' : '/dashboard'}
+                  className="block px-4 py-2 hover:bg-primary-50 dark:hover:bg-primary-900"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 hover:bg-primary-50 dark:hover:bg-primary-900 flex items-center gap-2"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </>
+            )}
+            {!isLoggedIn && (
+              <>
+                <Link href="/login" className="block px-4 py-2 hover:bg-primary-50 dark:hover:bg-primary-900">
+                  Login
+                </Link>
+                <Link href="/register" className="block px-4 py-2 font-medium text-primary-600">
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </nav>
   );
 }
