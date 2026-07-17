@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: yaharika-api-prod
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    environment:
+      - MONGO_URI=mongodb+srv://yaharika:Yaharika123@cluster0.p1bfe.mongodb.net/yaharika-mart?retryWrites=true&w=majority
+      - NODE_ENV=production
+      - PORT=5000
+      - JWT_SECRET=prod_super_secure_jwt_secret_min_32_characters
+      - JWT_REFRESH_SECRET=prod_super_secure_jwt_refresh_secret_min_32_characters
+      - CLIENT_URL=http://localhost:3000
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: yaharika-web-prod
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+      - NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
+      - NODE_ENV=production
+    depends_on:
+      - api

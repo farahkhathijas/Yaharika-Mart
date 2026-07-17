@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ──────────────────────────────────────────────── */
+:root {
+  --font-scale: 1;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+
+  /* Semantic color tokens */
+  --color-bg: #FAF7F0;
+  --color-bg-sand: #F3ECDD;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F9F7F2;
+  --color-border: #C7E4D5;
+  --color-text: #1C2B22;
+  --color-text-muted: #4A5D50;
+  --color-primary: #0F5132;
+  --color-primary-light: #E8F3ED;
+
+  /* Transitions */
+  --transition-base: 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-slow: 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ─── Dark Mode ──────────────────────────────────────────────────────────── */
+.dark {
+  --color-bg: #0E1712;
+  --color-bg-sand: #131F18;
+  --color-surface: #16241C;
+  --color-surface-muted: #1C2E22;
+  --color-border: #2A4A35;
+  --color-text: #EDEBD8;
+  --color-text-muted: #8FA896;
+  --color-primary: #4CAF7D;
+  --color-primary-light: #1C3B2A;
+}
+
+/* ─── High Contrast Mode ────────────────────────────────────────────────── */
+.high-contrast {
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-border: #000000;
+  --color-text: #000000;
+  --color-text-muted: #1A1A1A;
+  --color-primary: #0A3D22;
+  --color-primary-light: #E0F0E8;
+}
+
+.high-contrast .dark {
+  --color-bg: #000000;
+  --color-surface: #0A0A0A;
+  --color-border: #FFFFFF;
+  --color-text: #FFFFFF;
+  --color-primary: #5FD48E;
+}
+
+/* ─── Base Layer ─────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: calc(16px * var(--font-scale));
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    line-height: 1.6;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    line-height: 1.15;
+    color: var(--color-text);
+  }
+
+  /* Focus rings */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+}
+
+/* ─── Component Layer ────────────────────────────────────────────────────── */
+@layer components {
+  /* Accessibility: large tap targets */
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Premium card */
+  .card-premium {
+    @apply bg-white rounded-2xl shadow-card border border-primary-100 transition-all duration-300;
+  }
+  .card-premium:hover {
+    @apply shadow-card-hover -translate-y-1;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-glass;
+  }
+  .dark .glass {
+    @apply bg-card-dark/70 border-border/20;
+  }
+
+  /* Primary button gradient */
+  .btn-primary {
+    @apply bg-gradient-primary text-white font-semibold rounded-xl px-6 py-3 transition-all duration-200 hover:opacity-90 hover:shadow-glow active:scale-95;
+  }
+
+  /* Gold accent button */
+  .btn-gold {
+    @apply bg-gradient-gold text-white font-semibold rounded-xl px-6 py-3 transition-all duration-200 hover:opacity-90 active:scale-95;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply bg-gradient-to-r from-primary-50 via-secondary-300 to-primary-50 bg-[length:200%_100%] animate-shimmer rounded-xl;
+  }
+
+  /* Stock badge */
+  .stock-badge-low {
+    @apply bg-danger/10 text-danger border border-danger/20 text-xs font-semibold px-2 py-0.5 rounded-full;
+  }
+  .stock-badge-ok {
+    @apply bg-success/10 text-success border border-success/20 text-xs font-semibold px-2 py-0.5 rounded-full;
+  }
+
+  /* Zero waste tag */
+  .zero-waste-tag {
+    @apply bg-success/10 text-success text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1;
+  }
+
+  /* Scrollbar custom */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-200 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-300;
+  }
+
+  /* Skip to main content */
+  .skip-link {
+    @apply absolute -top-full left-4 z-[9999] px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold;
+  }
+  .skip-link:focus {
+    @apply top-4;
+  }
+}
+
+/* ─── Utility Layer ──────────────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Gradient text */
+  .text-gradient-primary {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-gold bg-clip-text text-transparent;
+  }
+
+  /* Stock highlight flash animation */
+  .stock-flash {
+    animation: stockFlash 0.6s ease-out;
+  }
+  @keyframes stockFlash {
+    0% { background-color: rgba(201, 162, 39, 0.3); }
+    100% { background-color: transparent; }
+  }
+
+  /* Confetti burst container */
+  .confetti-container {
+    @apply fixed inset-0 pointer-events-none z-[9998];
+  }
+}
