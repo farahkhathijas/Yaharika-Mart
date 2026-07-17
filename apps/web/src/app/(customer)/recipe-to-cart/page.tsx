@@ -6,6 +6,13 @@ import { api, queryKeys } from '@/lib/api-client';
 import { useCartStore } from '@/stores/cartStore';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
+import { IProduct, IShop } from '@yaharika/shared-types';
+
+interface MatchedResult {
+  ingredient: string;
+  matchedProduct: (IProduct & { shopId: IShop | string; shopName: string }) | null;
+  substitution: (IProduct & { shopId: IShop | string; shopName: string }) | null;
+}
 
 const PREDEFINED_RECIPES = [
   {
@@ -38,71 +45,68 @@ export default function RecipeToCartPage() {
   const [matchingResults, setMatchingResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const mockMatchIngredients = async (ingredientList: string[]) => {
+  const matchIngredients = async (ingredientList: string[]) => {
     setLoading(true);
     setMatchingResults([]);
 
-    // Simulate API search query delay
-    setTimeout(() => {
-      const results = ingredientList.map((ing) => {
-        // Mock finding matching products in the nearest shops
-        const price = Math.round(30 + Math.random() * 150);
-        const hasStock = Math.random() > 0.15;
-        return {
-          ingredient: ing,
-          matchedProduct: hasStock
-            ? {
-                _id: `${ing.toLowerCase().replace(/\s+/g, '-')}-id`,
-                name: ing,
-                price,
-                unit: ing.includes('Milk') ? '500 ml' : ing.includes('Oil') ? '1 L' : '500 g',
-                shopName: 'Patel Kirana',
-                shopId: '1',
-                stock: 45,
-                version: 0,
-              }
-            : null,
-          substitution: !hasStock
-            ? {
-                _id: `${ing.toLowerCase().replace(/\s+/g, '-')}-sub-id`,
-                name: `${ing} (Organic Alt)`,
-                price: Math.round(price * 1.25),
-                unit: '500 g',
-                shopName: "Sunita's Dairy",
-                shopId: '2',
-                stock: 20,
-                version: 0,
-              }
-            : null,
-        };
-      });
+    try {
+      const results = await Promise.all(
+        ingredientList.map(async (ing) => {
+          try {
+            const response = await api.get<{ items: Array<IProduct & { shopId: IShop }> }>('/products/search', { q: ing, limit: 5 });
+            const items = response.data?.items ?? [];
+            const inStock = items.find((p) => p.stock > 0);
+            const substitute = items.find((p) => p.stock > 0 && p._id !== inStock?._id);
 
+            const enrich = (p: IProduct & { shopId: IShop }) => {
+              const shop = p.shopId as IShop;
+              return { ...p, shopId: shop._id, shopName: shop.name };
+            };
+
+            return {
+              ingredient: ing,
+              matchedProduct: inStock ? enrich(inStock as IProduct & { shopId: IShop }) : null,
+              substitution: !inStock && substitute ? enrich(substitute as IProduct & { shopId: IShop }) : null,
+            } as MatchedResult;
+          } catch {
+            return { ingredient: ing, matchedProduct: null, substitution: null } as MatchedResult;
+          }
+        })
+      );
       setMatchingResults(results);
+      const found = results.filter((r) => r.matchedProduct || r.substitution).length;
+      if (found === 0) {
+        toast.error('No matching ingredients found in nearby shops.');
+      } else {
+        toast.success(`Found ${found} of ${ingredientList.length} ingredients at local shops!`);
+      }
+    } catch {
+      toast.error('Failed to search for ingredients.');
+    } finally {
       setLoading(false);
-      toast.success('Successfully mapped recipe ingredients to local shops!');
-    }, 1200);
+    }
   };
 
   useEffect(() => {
-    mockMatchIngredients(selectedRecipe.ingredients);
+    matchIngredients(selectedRecipe.ingredients);
   }, [selectedRecipe]);
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customText.trim()) return;
 
-    // Extract potential food words from custom text (simplified parsing)
-    const keywords = ['rice', 'milk', 'paneer', 'butter', 'tomatoes', 'onions', 'garlic', 'dal', 'oil', 'bread'];
+    // Extract ingredient keywords from custom text
+    const keywords = ['rice', 'milk', 'paneer', 'butter', 'tomatoes', 'onions', 'garlic', 'dal', 'oil', 'bread', 'salt', 'sugar', 'tea', 'coffee', 'flour', 'atta', 'cheese', 'eggs', 'chicken', 'fish', 'potatoes', 'onion', 'tomato', 'ginger', 'capsicum', 'carrot', 'spinach', 'ghee', 'dahi', 'yogurt', 'cream', 'chocolate', 'cake', 'biscuit', 'noodles', 'pasta', 'honey', 'jam'];
     const extracted = keywords.filter((word) => customText.toLowerCase().includes(word));
     
     const capitalized = extracted.map((w) => w.charAt(0).toUpperCase() + w.slice(1));
     
     if (capitalized.length === 0) {
-      toast.error('No matching ingredients found in recipe text.');
+      toast.error('No matching ingredients found in recipe text. Try: rice, milk, paneer, tomatoes, onions...');
       return;
     }
 
-    mockMatchIngredients(capitalized);
+    matchIngredients(capitalized);
   };
 
   const handleAddAll = () => {
@@ -112,7 +116,7 @@ export default function RecipeToCartPage() {
       if (item) {
         addItem({
           productId: item._id,
-          shopId: item.shopId,
+          shopId: typeof item.shopId === 'string' ? item.shopId : (item.shopId as IShop)._id,
           name: item.name,
           price: item.price,
           qty: 1,
@@ -123,7 +127,11 @@ export default function RecipeToCartPage() {
         count++;
       }
     });
-    toast.success(`Added ${count} items to your shopping cart! 🛒`);
+    if (count > 0) {
+      toast.success(`Added ${count} items to your shopping cart!`);
+    } else {
+      toast.error('No items to add.');
+    }
   };
 
   const estimatedTotal = matchingResults.reduce((sum, res) => {

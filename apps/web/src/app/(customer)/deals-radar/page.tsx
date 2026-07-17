@@ -78,10 +78,10 @@ export default function DealsRadarPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.dealsRadar({ maxDistance }),
-    queryFn: () => api.get<{ deals: IDealsRadarEntry[] }>('/deals-radar', { maxDistance }),
+    queryFn: () => api.get<{ items: IDealsRadarEntry[]; total: number }>('/deals-radar', { maxDistance }),
   });
 
-  const deals = data?.data?.deals ?? [];
+  const deals = data?.data?.items ?? [];
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">

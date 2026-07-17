@@ -18,22 +18,32 @@ export default function CartPage() {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (!user || !user.address) throw new Error('Please add a delivery address in your account.');
+      if (items.length === 0) throw new Error('Cart is empty.');
 
-      // Group items by shop (simplified: assume single shop per cart for MVP)
-      const shopId = items[0]?.shopId;
-      if (!shopId) throw new Error('Cart is empty.');
-
-      const response = await api.post<{ order: unknown }>('/orders', {
-        shopId,
-        items: items.map((i) => ({ productId: i.productId, qty: i.qty })),
-        deliveryAddress: user.address,
+      // Group items by shopId so each shop gets its own order
+      const byShop = new Map<string, typeof items>();
+      items.forEach((i) => {
+        const arr = byShop.get(i.shopId) ?? [];
+        arr.push(i);
+        byShop.set(i.shopId, arr);
       });
 
-      if (!response.success) {
-        throw new Error(response.error?.message ?? 'Checkout failed.');
+      const results = await Promise.all(
+        Array.from(byShop.entries()).map(([shopId, shopItems]) =>
+          api.post<{ order: unknown }>('/orders', {
+            shopId,
+            items: shopItems.map((i) => ({ productId: i.productId, qty: i.qty })),
+            deliveryAddress: user.address,
+          })
+        )
+      );
+
+      const failed = results.find((r) => !r.success);
+      if (failed) {
+        throw new Error(failed.error?.message ?? 'One or more orders failed.');
       }
 
-      return response.data;
+      return results.map((r) => r.data);
     },
     onSuccess: async () => {
       clearCart();

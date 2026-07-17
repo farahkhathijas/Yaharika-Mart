@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { authenticate, roleGuard } from '../middleware/auth';
-import { getAllShops, getShopById, getMyShop, updateShop, toggleOpen } from '../controllers/shopController';
+import { getAllShops, getShopById, getMyShop, createShop, updateShop, toggleOpen } from '../controllers/shopController';
 
 const router = Router();
 
 // GET /api/shops — Public: list all open shops with filters
 router.get('/', getAllShops);
+
+// POST /api/shops — Requires: authenticate, vendor role
+router.post('/', authenticate, roleGuard('vendor'), createShop);
 
 // GET /api/shops/my — Requires: authenticate, vendor role
 router.get('/my', authenticate, roleGuard('vendor'), getMyShop);

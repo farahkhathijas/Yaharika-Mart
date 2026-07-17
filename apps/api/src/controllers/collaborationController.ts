@@ -94,7 +94,7 @@ export const createSwapRequest = async (req: AuthRequest, res: Response, next: N
 export const getSwapRequests = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const shop = await Shop.findOne({ ownerId: req.user!.id });
-    if (!shop) { res.json({ success: true, data: [] }); return; }
+    if (!shop) { res.json({ success: true, data: { swaps: [] } }); return; }
 
     const swaps = await StockSwapRequest.find({
       $or: [

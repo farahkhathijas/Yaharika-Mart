@@ -97,6 +97,41 @@ export const getMyShop = async (req: AuthRequest, res: Response, next: NextFunct
   }
 };
 
+// POST /api/shops — Vendor creates their shop
+export const createShop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { name, description, category, area, lat, lng, logoUrl, bannerUrl } = req.body;
+
+    if (!name || !category || !area) {
+      throw ApiError.badRequest('Shop name, category, and area are required.');
+    }
+
+    const existing = await Shop.findOne({ ownerId: req.user!.id });
+    if (existing) {
+      throw ApiError.conflict('You already have a shop.', 'SHOP_EXISTS');
+    }
+
+    const shop = await Shop.create({
+      ownerId: req.user!.id,
+      name,
+      description: description || '',
+      category,
+      area,
+      lat: parseFloat(lat) || 12.9716,
+      lng: parseFloat(lng) || 77.5946,
+      logoUrl,
+      bannerUrl,
+      isOpen: true,
+      rating: 4.0,
+      walkInStockLockEnabled: false,
+    });
+
+    res.status(201).json({ success: true, data: { shop } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // PATCH /api/shops/:id
 export const updateShop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {

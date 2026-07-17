@@ -1,0 +1,54 @@
+
+> @yaharika/web@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.4
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/24) ...
+   Generating static pages (6/24) 
+   Generating static pages (12/24) 
+   Generating static pages (18/24) 
+ ✓ Generating static pages (24/24)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    13.6 kB         157 kB
+├ ○ /_not-found                          879 B          88.2 kB
+├ ○ /account                             6.03 kB         122 kB
+├ ○ /admin/dashboard                     4.51 kB         245 kB
+├ ○ /admin/vendors                       3.23 kB         107 kB
+├ ○ /cart                                7.81 kB         161 kB
+├ ○ /dashboard                           3.86 kB         244 kB
+├ ○ /deals-radar                         4.1 kB          156 kB
+├ ○ /demo                                12.3 kB         153 kB
+├ ○ /group-buys                          7.18 kB         156 kB
+├ ○ /intelligence                        2.94 kB         135 kB
+├ ○ /login                               5.18 kB         112 kB
+├ ○ /orders                              6 kB            165 kB
+├ ƒ /orders/[id]                         4.5 kB          151 kB
+├ ○ /products                            7.2 kB          156 kB
+├ ƒ /products/[productId]                5.08 kB         176 kB
+├ ○ /recipe-to-cart                      5.03 kB         148 kB
+├ ○ /register                            5.55 kB         112 kB
+├ ○ /register-vendor                     6.2 kB          113 kB
+├ ○ /shops                               4.13 kB         151 kB
+├ ƒ /shops/[shopId]                      6.27 kB         178 kB
+├ ○ /stock-loans                         8.39 kB         158 kB
+├ ○ /stock-swap                          5.64 kB         171 kB
+├ ○ /vendor/orders                       3.48 kB         156 kB
+└ ○ /zero-waste                          3.91 kB         156 kB
++ First Load JS shared by all            87.4 kB
+  ├ chunks/1dd3208c-ad7cee59c7a52e5c.js  53.6 kB
+  ├ chunks/286-a4ec089e73c92df0.js       31.7 kB
+  └ other shared chunks (total)          2.04 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

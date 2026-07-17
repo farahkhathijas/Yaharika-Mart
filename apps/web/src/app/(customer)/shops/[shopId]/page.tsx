@@ -128,10 +128,10 @@ export default function ShopDetailPage() {
   // 2. Get shop products
   const { data: productsRes, isLoading: productsLoading } = useQuery({
     queryKey: queryKeys.shopProducts(shopId as string),
-    queryFn: () => api.get<IProduct[]>(`/shops/${shopId}/products`),
+    queryFn: () => api.get<{ products: IProduct[] }>(`/shops/${shopId}/products`),
   });
 
-  const products = productsRes?.data ?? [];
+  const products = productsRes?.data?.products ?? [];
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );

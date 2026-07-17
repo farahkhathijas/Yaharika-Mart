@@ -86,10 +86,10 @@ export default function ZeroWastePage() {
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.zeroWaste({ category }),
-    queryFn: () => api.get<{ listings: IZeroWasteListing[] }>('/zero-waste', { category }),
+    queryFn: () => api.get<{ items: IZeroWasteListing[]; total: number }>('/zero-waste', { category }),
   });
 
-  const listings = data?.data?.listings ?? [];
+  const listings = data?.data?.items ?? [];
 
   // Estimate total kg saved
   const totalQty = listings.reduce((s, l) => s + l.qtyAvailable, 0);

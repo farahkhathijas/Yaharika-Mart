@@ -1,10 +1,13 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ArrowRight, Clock, ShieldCheck, Truck, Package } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Clock, ShieldCheck, Truck, Package, RotateCcw, FileText } from 'lucide-react';
+import { useState } from 'react';
 import { api, queryKeys } from '@/lib/api-client';
-import { IOrder } from '@yaharika/shared-types';
+import { IOrder, IProduct } from '@yaharika/shared-types';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
+import { useCartStore } from '@/stores/cartStore';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 const orderStatusMetadata: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -20,6 +23,40 @@ function OrderCard({ order }: { order: IOrder }) {
   const shop = order.shopId as any;
   const statusMeta = orderStatusMetadata[order.status] || { label: order.status, color: 'bg-foreground/5 text-foreground/50', icon: Clock };
   const StatusIcon = statusMeta.icon;
+  const { addItem } = useCartStore();
+  const [reordering, setReordering] = useState(false);
+
+  const handleReorder = async () => {
+    setReordering(true);
+    let added = 0;
+    for (const it of order.items) {
+      const pid = typeof it.productId === 'string' ? it.productId : (it.productId as any)?._id;
+      if (!pid) continue;
+      try {
+        const res = await api.get<{ product: IProduct }>(`/products/${pid}`);
+        const p = res.data?.product;
+        if (p && p.stock > 0) {
+          addItem({
+            productId: p._id,
+            shopId: typeof p.shopId === 'string' ? p.shopId : (p.shopId as any)._id,
+            name: p.name,
+            price: p.price,
+            qty: Math.min(it.qty, p.stock),
+            image: p.images[0],
+            unit: p.unit,
+            stock: p.stock,
+            version: p.version,
+          });
+          added++;
+        }
+      } catch {
+        // product may be deleted; skip
+      }
+    }
+    setReordering(false);
+    if (added > 0) toast.success(`Reordered ${added} item${added !== 1 ? 's' : ''} added to cart!`);
+    else toast.error('Items no longer available.');
+  };
 
   return (
     <motion.div
@@ -58,6 +95,26 @@ function OrderCard({ order }: { order: IOrder }) {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={handleReorder}
+          disabled={reordering || order.status === 'cancelled'}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors text-xs font-semibold disabled:opacity-50"
+          aria-label={`Reorder items from order ${order._id}`}
+        >
+          <RotateCcw size={13} />
+          {reordering ? 'Adding...' : 'Reorder'}
+        </button>
+        <Link
+          href={`/orders/${order._id}`}
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary-100 text-foreground/70 hover:bg-primary-50 transition-colors text-xs font-semibold"
+          aria-label={`View invoice for order ${order._id}`}
+        >
+          <FileText size={13} />
+          Invoice
+        </Link>
       </div>
     </motion.div>
   );
