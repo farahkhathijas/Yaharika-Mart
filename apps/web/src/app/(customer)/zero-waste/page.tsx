@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Leaf, Clock, ShoppingCart, Filter } from 'lucide-react';
+import { Leaf, Clock, ShoppingCart, ListFilter as Filter } from 'lucide-react';
 import { api, queryKeys } from '@/lib/api-client';
 import { IZeroWasteListing } from '@yaharika/shared-types';
 import { formatCurrency, timeUntil, cn } from '@/lib/utils';

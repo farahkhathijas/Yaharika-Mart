@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CookingPot, Search, Plus, ShoppingCart, HelpCircle, Check, AlertCircle, Clock, Heart } from 'lucide-react';
+import { CookingPot, Search, Plus, ShoppingCart, Circle as HelpCircle, Check, CircleAlert as AlertCircle, Clock, Heart } from 'lucide-react';
 import { api, queryKeys } from '@/lib/api-client';
 import { useCartStore } from '@/stores/cartStore';
 import { formatCurrency } from '@/lib/utils';

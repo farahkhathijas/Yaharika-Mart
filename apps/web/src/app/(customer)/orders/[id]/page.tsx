@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Download, Printer, Store, MapPin, CheckCircle2, Clock } from 'lucide-react';
+import { ArrowLeft, Download, Printer, Store, MapPin, CircleCheck as CheckCircle2, Clock } from 'lucide-react';
 import { api, queryKeys } from '@/lib/api-client';
 import { IOrder } from '@yaharika/shared-types';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
